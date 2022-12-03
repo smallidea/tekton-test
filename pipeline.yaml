@@ -1,0 +1,33 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+
+metadata:
+  name: tekton-pipeline-test
+
+spec:
+  params:
+    - name: FIRST_NAME
+      description: Your first name
+      type: string
+      default: "jason"
+    - name: LAST_NAME
+      description: Your last name
+      type: string
+      default: "chen"
+
+  tasks:
+    - name: task-001
+      taskRef:
+        name: tekton-task-test
+      params:
+        - name: USERNAME
+          value: $(params.FIRST_NAME)
+
+    - name: task-002
+      runAfter:
+        - task-001
+      taskRef:
+        name: tekton-task-test
+      params:
+        - name: USERNAME
+          value: $(params.LAST_NAME)

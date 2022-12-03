@@ -1,0 +1,15 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+
+metadata:
+  name: tekton-pipeline-test-run-003
+
+spec:
+  pipelineRef:
+    name: tekton-pipeline-test
+  params:
+    - name: FIRST_NAME
+      value: "Jason"
+    - name: LAST_NAME
+      value: "Chen"
+

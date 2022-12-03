@@ -1,0 +1,88 @@
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerBinding
+metadata:
+  name: pipeline-binding-test
+spec:
+  params:
+  - name: FIRST_NAME
+    value: $(body.FIRST_NAME)
+  - name: LAST_NAME
+    value: $(body.LAST_NAME)
+
+---
+
+apiVersion: triggers.tekton.dev/v1beta1
+kind: EventListener
+metadata:
+  name: trigger-listener-test
+spec:
+  serviceAccountName: tekton-triggers-test-sa
+  triggers:
+    - name: trigger-test
+      bindings:
+        - ref: pipeline-binding-test
+      template:
+        ref: tekton-pipeline-test
+
+---
+
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerTemplate
+metadata:
+  name: pipeline-template-test
+spec:
+  params:
+  - name: FIRST_NAME
+    default: 
+  - name: LAST_NAME
+    default: 
+
+  resourcetemplates:
+  - apiVersion: tekton.dev/v1beta1
+    kind: PipelineRun
+    metadata:
+      generateName: tekton-pipeline-test-run-
+    spec:
+      pipelineRef:
+        name: tekton-pipeline-test
+      params:
+      - name: FIRST_NAME
+        value: $(tt.params.FIRST_NAME)
+      - name: LAST_NAME
+        value: $(tt.params.LAST_NAME)
+
+--- 
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tekton-triggers-test-sa
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: tekton-triggers-test-eventlistener-binding
+subjects:
+- kind: ServiceAccount
+  name: tekton-triggers-test-sa
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: tekton-triggers-eventlistener-roles
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: tekton-triggers-test-eventlistener-clusterbinding
+subjects:
+- kind: ServiceAccount
+  name: tekton-triggers-test-sa
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: tekton-triggers-eventlistener-clusterroles
